@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mywork.mapper.BoardMapper">
+
+	<!-- List -->
+	<select id="boardList" resultType="com.mywork.domain.BoardDTO">
+		select * from (select rownum rn, aa.* from (select * from springboard
+		<where>
+			<if test="word!=null and field=='title'">
+				title like '%${word}%'
+			</if>
+			<if test="word!=null and field=='content'">
+				content like '%${word}%'
+			</if>
+			<if test="word!=null and field=='writer'">
+				writer like '%${word}%'
+			</if>
+		</where>
+		<![CDATA[
+		order by groups desc, steps asc)aa) where rn >=#{startRow} and rn <=#{endRow}
+		]]>
+	</select>
+
+	<!-- List Count -->
+	<select id="getTotal" resultType="int">
+		select count(*) from springboard
+		<where>
+			<if test="word!=null and field=='title'">
+				title like '%${word}%'
+			</if>
+			<if test="word!=null and field=='content'">
+				content like '%${word}%'
+			</if>
+			<if test="word!=null and field=='writer'">
+				writer like '%${word}%'
+			</if>
+		</where>
+	</select>
+
+	<!-- board Write -->
+	<insert id="boardInsert">
+		insert into
+		springboard(seq,title,content,writer,regdate,hitcount,password,groups,levels,steps)
+		values(board_seq.nextval,#{title},#{content},#{writer},sysdate,0,#{password},board_seq.nextval,0,0)
+	</insert>
+
+	<!-- board View -->
+	<select id="boardDetail" resultType="com.mywork.domain.BoardDTO">
+		select *
+		from springboard
+		where seq=#{seq}
+	</select>
+
+	<!-- ReadCount +1 -->
+	<update id="addReadcount">
+		update springboard
+		set
+		hitcount=hitcount+1
+		where
+		seq=#{seq}
+	</update>
+
+	<!-- Password Check -->
+	<select id="checkPassword" resultType="int">
+		select
+		count(*)
+		from
+		springboard
+		where seq=#{seq} and password=#{password}
+	</select>
+
+	<!-- board Delete -->
+	<delete id="boardDelete">
+		delete springboard
+		where
+		seq=#{seq}
+	</delete>
+
+	<!-- board Update -->
+	<update id="boardUpdate">
+		update springboard
+		set
+		writer=#{writer},
+		title=#{title}, content=#{content},
+		password=#{password}
+		where
+		seq=#{seq}
+	</update>
+
+	<!-- steps Update -->
+	<update id="stepsUpdate">
+		<![CDATA[
+			update springboard
+			set steps=steps+1 where groups=#{groups} and steps>#{steps}
+		]]>
+	</update>
+
+	<!-- board Reply -->
+	<insert id="boardReply">
+		insert into
+		springboard(seq,title,content,writer,regdate,hitcount,password,groups,levels,steps)
+		values(board_seq.nextval,#{title},#{content},#{writer},sysdate,0,#{password},#{groups},#{levels}+1,#{steps}+1)
+	</insert>
+	
+</mapper>
